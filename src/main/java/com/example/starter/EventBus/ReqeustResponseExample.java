@@ -3,6 +3,8 @@ package com.example.starter.EventBus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,12 +30,14 @@ public class ReqeustResponseExample extends AbstractVerticle {
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
       startPromise.complete();
-      var eventBus =vertx.eventBus();
-      final String message = "Hello inside RequestVerticle EventBus";
+      var eventBus = vertx.eventBus();
+      final var message = new JsonObject()
+        .put("message", "Hello World")
+        .put("version", 1);
       log.info(" Sending : {}", message);
-      eventBus.<String>request(ADDRESS,message, reply ->{
-        log.info(" Response : {}",reply.result().body());
-      });
+      eventBus.<JsonArray>request(ADDRESS, message, reply ->
+        log.info(" Response : {}", reply.result().body())
+      );
     }
   }
 
@@ -45,9 +49,9 @@ public class ReqeustResponseExample extends AbstractVerticle {
     public void start(Promise<Void> startPromise) throws Exception {
       startPromise.complete();
 
-      vertx.eventBus().<String>consumer(RequestVerticle.ADDRESS, message ->{
-      logger.info("Received Message: {} ",message.body());
-      message.reply("Received your messabge , Thanks !!");
+      vertx.eventBus().<JsonObject>consumer(RequestVerticle.ADDRESS, message -> {
+        logger.info("Received Message: {} ", message.body());
+        message.reply(new JsonArray().add("one").add("two"));
       });
     }
   }
